@@ -36,9 +36,11 @@ module PuppetForgeServer::App
     def initialize(backends)
       super(nil)
       @backends = backends
+      @log = PuppetForgeServer::Logger.get(:server)
     end
 
     get '/v3/releases/:module' do
+      @log.debug("/v3/releases/#{params[:module]}")
       halt 404, json({:errors => ['404 Not found']}) unless params[:module]
       author, name, version = params[:module].split '-'
       halt 400, json({:errors => ["'#{params[:module]}' is not a valid release slug"]}) unless author && name && version
@@ -48,6 +50,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/releases' do
+      @log.debug("/v3/releases")
       halt 400, json({:error => 'The number of version constraints in the query does not match the number of module names'}) unless params[:module]
       author, name = params[:module].split '-'
       releases = releases(author, name)
@@ -57,6 +60,7 @@ module PuppetForgeServer::App
 
     get '/v3/files/*' do
       captures = params[:captures].first
+      @log.debug("/v3/files/#{captures}")
       buffer = get_buffer(@backends, captures)
       halt 404, json({:errors => ['404 Not found']}) unless buffer
       content_type 'application/octet-stream'
@@ -65,6 +69,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/modules/:author-:name' do
+      @log.debug("/v3/modules/#{params[:author]}-#{params[:name]}")
       author = params[:author]
       name = params[:name]
       halt 400, json({:errors => "'#{params[:module]}' is not a valid module slug"}) unless author && name
@@ -74,13 +79,14 @@ module PuppetForgeServer::App
       halt 404, json({:errors => ['404 Not found']}) if metadata.empty?
       modules = get_modules(metadata)
       if modules.count > 1
-        PuppetForgeServer::Logger.get(:server).warn "There were more than oen module found for '#{author}-#{name}'"
-        PuppetForgeServer::Logger.get(:server).debug(modules.to_s)
+        @log.warn "There were more than oen module found for '#{author}-#{name}'"
+        @log.debug(modules.to_s)
       end
       json modules.first
     end
 
     get '/v3/modules' do
+      @log.debug("/v3/modules?#{query}")
       query = params[:query]
       metadata = @backends.map do |backend|
         backend.query_metadata(query)
