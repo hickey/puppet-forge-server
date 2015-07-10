@@ -42,6 +42,7 @@ module PuppetForgeServer
   end
 
   module Backends
+    autoload :Cache, 'puppet_forge_server/backends/cache'
     autoload :Directory, 'puppet_forge_server/backends/directory'
     autoload :Proxy, 'puppet_forge_server/backends/proxy'
     autoload :ProxyV1, 'puppet_forge_server/backends/proxy_v1'
