@@ -37,10 +37,11 @@ module PuppetForgeServer::App
       super(nil)
       @backends = backends
       @log = PuppetForgeServer::Logger.get(:server)
+      @log.debug('Puppet Forge API v3 initialized')
     end
 
     get '/v3/releases/:module' do
-      @log.debug("/v3/releases/#{params[:module]}")
+      @log.debug("v3 API Call: /v3/releases/#{params[:module]}")
       halt 404, json({:errors => ['404 Not found']}) unless params[:module]
       author, name, version = params[:module].split '-'
       halt 400, json({:errors => ["'#{params[:module]}' is not a valid release slug"]}) unless author && name && version
@@ -50,7 +51,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/releases' do
-      @log.debug("/v3/releases")
+      @log.debug("v3 API Call: /v3/releases?module=#{params[:module]}")
       halt 400, json({:error => 'The number of version constraints in the query does not match the number of module names'}) unless params[:module]
       author, name = params[:module].split '-'
       releases = releases(author, name)
@@ -60,7 +61,7 @@ module PuppetForgeServer::App
 
     get '/v3/files/*' do
       captures = params[:captures].first
-      @log.debug("/v3/files/#{captures}")
+      @log.debug("v3 API Call: /v3/files/#{captures}")
       buffer = get_buffer(@backends, captures)
       halt 404, json({:errors => ['404 Not found']}) unless buffer
       content_type 'application/octet-stream'
@@ -69,7 +70,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/modules/:author-:name' do
-      @log.debug("/v3/modules/#{params[:author]}-#{params[:name]}")
+      @log.debug("v3 API Call: /v3/modules/#{params[:author]}-#{params[:name]}")
       author = params[:author]
       name = params[:name]
       halt 400, json({:errors => "'#{params[:module]}' is not a valid module slug"}) unless author && name
@@ -86,7 +87,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/modules' do
-      @log.debug("/v3/modules?#{query}")
+      @log.debug("v3 API Call: /v3/modules?query=#{params[:query]}")
       query = params[:query]
       metadata = @backends.map do |backend|
         backend.query_metadata(query)
@@ -97,6 +98,7 @@ module PuppetForgeServer::App
     end
 
     get '/v3/users/:author' do
+      @log.debug("v3 API Call: /v3/users/#{params[:author]}")
       author = params[:author]
       json :username => author, :uri => "/v3/users/#{author}"
     end

@@ -16,28 +16,24 @@
 
 require 'json'
 require 'digest/sha1'
+require 'uri'
 
 module PuppetForgeServer::Backends
   class Proxy
 
     def initialize(url, cache_dir, http_client)
-      @url = url
-      @cache_dir = File.join(cache_dir, Digest::SHA1.hexdigest(@url))
+      @url = URI.parse(url)
+      @cache_dir = File.join(cache_dir, Digest::SHA1.hexdigest(url))
       @http_client = http_client
       @log = PuppetForgeServer::Logger.get
-
-      # Create directory structure for all alphabetic letters
-      (10...36).each do |i|
-        FileUtils.mkdir_p(File.join(@cache_dir, i.to_s(36)))
-      end
     end
 
     def get_file_buffer(relative_path)
       file_name = relative_path.split('/').last
-      File.join(@cache_dir, file_name[0].downcase, file_name)
+      #File.join(@cache_dir, file_name[0].downcase, file_name)
       path = Dir["#{@cache_dir}/**/#{file_name}"].first
       unless File.exist?("#{path}")
-        buffer = download("/#{relative_path}")
+        buffer = download(relative_path)
         File.open(File.join(@cache_dir, file_name[0].downcase, file_name), 'wb') do |file|
           file.write(buffer.read)
         end
@@ -51,23 +47,20 @@ module PuppetForgeServer::Backends
     end
 
     def upload(file_data)
-      @log.debug 'File upload is not supported by the proxy backends'
-      false
+      @log.error 'File upload is not supported by the proxy backends'
+      raise RuntimeError, 'File upload is not supported by the proxy backends'
     end
 
     protected
     attr_reader :log
 
     def get(relative_url)
-      @http_client.get(url(relative_url))
+      @http_client.get(URI.join(@url, relative_url))
     end
 
     def download(relative_url)
-      @http_client.download(url(relative_url))
+      @http_client.download(URI.join(@url, @api_file_path, relative_url))
     end
 
-    def url(relative_url)
-      @url + relative_url
-    end
   end
 end

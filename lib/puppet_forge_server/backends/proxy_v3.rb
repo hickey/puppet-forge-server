@@ -19,11 +19,12 @@ require 'json'
 module PuppetForgeServer::Backends
   class ProxyV3 < PuppetForgeServer::Backends::Proxy
 
-    @@PRIORITY = 10
-    attr_reader :PRIORITY
+    attr_reader :priority
 
     def initialize(url, cache_dir, http_client = PuppetForgeServer::Http::HttpClient.new)
       super(url, cache_dir, http_client)
+      @api_file_path = '/v3/files/'
+      @priority = 10
     end
 
     def get_metadata(author, name, options = {})

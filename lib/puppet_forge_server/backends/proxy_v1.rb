@@ -20,12 +20,13 @@ require 'digest/md5'
 module PuppetForgeServer::Backends
   class ProxyV1 < PuppetForgeServer::Backends::Proxy
 
-    # Priority should be lower than v3 API proxies as v3 requires less API calls
-    @@PRIORITY = 15
-    attr_reader :PRIORITY
+    attr_reader :priority
 
     def initialize(url, cache_dir, http_client = PuppetForgeServer::Http::HttpClient.new)
       super(url, cache_dir, http_client)
+      @api_file_path = '/api/v1/files/'
+      # Priority should be lower than v3 API proxies as v3 requires less API calls
+      @priority = 15
     end
 
     def get_metadata(author, name, options = {})

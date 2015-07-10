@@ -21,12 +21,14 @@ module PuppetForgeServer::Backends
   class Directory
     include PuppetForgeServer::Utils::Archiver
 
-    # Give highest priority to locally hosted modules
-    @@PRIORITY = 0
-    attr_reader :PRIORITY
+    
+    attr_reader :priority
 
     def initialize(url)
       @module_dir = url
+      
+      # Give highest priority to locally hosted modules
+      @priority = 0
     end
 
     def query_metadata(query, options = {})
@@ -52,7 +54,7 @@ module PuppetForgeServer::Backends
       true
     end
 
-    private
+    protected
     def read_metadata(archive_path)
       metadata_file = read_from_archive(archive_path, %r[[^/]+/metadata\.json$])
       JSON.parse(metadata_file)
@@ -74,7 +76,7 @@ module PuppetForgeServer::Backends
         {
             :metadata => parse_dependencies(PuppetForgeServer::Models::Metadata.new(read_metadata(path))),
             :checksum => options[:with_checksum] == true ? Digest::MD5.file(path).hexdigest : nil,
-            :path => "/#{Pathname.new(path).relative_path_from(Pathname.new(@module_dir))}"
+            :path => "#{Pathname.new(path).relative_path_from(Pathname.new(@module_dir))}"
         }
       end
     end

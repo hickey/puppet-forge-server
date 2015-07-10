@@ -36,9 +36,12 @@ module PuppetForgeServer::App
     def initialize(backends)
       super(nil)
       @backends = backends
+      @log = PuppetForgeServer::Logger.get(:server)
+      @log.debug('Puppet Forge API v1 initialized')
     end
 
     get '/api/v1/releases.json' do
+      @log.debug("v1 API Call: /api/v1/releases.json")
       halt 400, json({:error => 'The number of version constraints in the query does not match the number of module names'}) unless params[:module]
       author, name = params[:module].split '/'
       version = params[:version] if params[:version]
@@ -51,6 +54,7 @@ module PuppetForgeServer::App
 
     get '/api/v1/files/*' do
       captures = params[:captures].first
+      @log.debug("v1 API Call: /api/v1/files/#{captures}")
       buffer = get_buffer(@backends, captures)
       halt 404, json({:errors => ['404 Not found']}) unless buffer
       content_type 'application/octet-stream'
@@ -59,6 +63,7 @@ module PuppetForgeServer::App
     end
 
     get '/modules.json' do
+      @log.debug("v1 API Call: /modules.json?q=#{params[:q]}")
       query = params[:q]
       metadata = @backends.map do |backend|
         backend.query_metadata(query, {:with_checksum => false})
