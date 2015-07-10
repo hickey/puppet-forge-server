@@ -25,7 +25,10 @@ module PuppetForgeServer::Utils
     def get_buffer(backends, path)
       backends.each do |backend|
         buffer = backend.get_file_buffer(path)
-        return buffer if buffer
+        if buffer
+          PuppetForgeServer::Logger.get.debug("#{backend} found #{path}")
+          return buffer
+        end
       end
       return nil
     end

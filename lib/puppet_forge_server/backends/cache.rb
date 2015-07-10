@@ -40,7 +40,6 @@ module PuppetForgeServer::Backends
       file_name = relative_path.split('/').last
       path = Dir["#{@cache_dir}/**/#{file_name}"].first
       if not path.nil? and File.exist?(path)
-        @log.debug("Backend::Cache: #{relative_path} found in cache")
         File.open(path, 'rb') 
       end
     end
