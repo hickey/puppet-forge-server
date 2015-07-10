@@ -92,16 +92,18 @@ module PuppetForgeServer
 
     private
     def backends(options)
-      # Add directory backend for serving cached modules in case proxy flips over
-      #backends = options[:backend]['Proxy'] && ! options[:backend]['Proxy'].empty? ? [PuppetForgeServer::Backends.const_get('Directory').new(options[:cache_basedir])] : []
-      backends << options[:backend].map do |type, typed_backends|
+      backends = options[:backend].map do |type, typed_backends|
         typed_backends.map do |url|
           case type
             when 'Proxy'
               @log.info "Detecting API version for #{url}..."
-              [ PuppetForgeServer::Backends.const_get("#{type}V#{get_api_version(url)}").new(url, options[:cache_basedir]),
-                PuppetForgeServer::Backends.const_get('cache').new(url, options[:cache_basedir]) ]
+              version = get_api_version(url)
+              @log.info("Registered backend: #{type}V#{version}(#{url}, #{options[:cache_basedir]})")
+              @log.info("Registered backend: Cache(#{url}, #{options[:cache_basedir]})")
+              [ PuppetForgeServer::Backends.const_get("#{type}V#{version}").new(url, options[:cache_basedir]),
+                PuppetForgeServer::Backends.const_get('Cache').new(url, options[:cache_basedir]) ]
             else
+              @log.info("Registered backend: #{type}(#{url})")
               PuppetForgeServer::Backends.const_get(type).new(url)
           end
         end

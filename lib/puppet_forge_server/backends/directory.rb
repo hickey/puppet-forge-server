@@ -53,6 +53,11 @@ module PuppetForgeServer::Backends
       end
       true
     end
+    
+    def to_s
+      class_type = (self.class.to_s.split('::'))[-1]
+      "#{class_type}<#{__id__.to_s(16)}> (#{@module_dir})"
+    end
 
     protected
     def read_metadata(archive_path)

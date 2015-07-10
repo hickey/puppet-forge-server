@@ -51,6 +51,11 @@ module PuppetForgeServer::Backends
       raise RuntimeError, 'File upload is not supported by the proxy backends'
     end
 
+    def to_s
+      class_type = (self.class.to_s.split('::'))[-1]
+      "#{class_type}<#{__id__.to_s(16)}> (#{@url}, #{@cache_dir})"
+    end
+    
     protected
     attr_reader :log
 
