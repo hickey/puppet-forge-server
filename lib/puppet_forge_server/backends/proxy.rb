@@ -29,16 +29,12 @@ module PuppetForgeServer::Backends
     end
 
     def get_file_buffer(relative_path)
-      file_name = relative_path.split('/').last
-      path = Dir["#{@cache_dir}/**/#{file_name}"].first
-      unless File.exist?(path)
-        buffer = download(relative_path)
-        path = File.join(@cache_dir, file_name[0].downcase, file_name)
-        File.open(path, 'wb') do |file|
-          file.write(buffer.read)
-        end
-        
+      buffer = download(relative_path)
+      path = File.join(@cache_dir, relative_path[0].downcase, relative_path)
+      File.open(path, 'wb') do |file|
+        file.write(buffer.read)
       end
+        
       File.open(path, 'rb')
     rescue => e
       @log.error("#{self.class.name} failed downloading file '#{relative_path}'")
