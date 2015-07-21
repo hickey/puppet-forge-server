@@ -31,10 +31,14 @@ module PuppetForgeServer::App
       env['rack.errors'] =  PuppetForgeServer::Logger.get(:server)
     end
 
-    def initialize(root, http_client = PuppetForgeServer::Http::HttpClient.new)
+    def initialize(root, backends, http_client = PuppetForgeServer::Http::HttpClient.new)
       super(nil)
       settings.root = root
+      @backends = backends
       @http_client = http_client
+      @upload_status = nil
+      @log = PuppetForgeServer::Logger.get(:server)
+      @log.info 'Application UI initialized'
     end
 
     get '/' do
@@ -47,6 +51,32 @@ module PuppetForgeServer::App
       haml :modules, :locals => {:query => query, :modules => modules}
     end
 
+    get '/upload' do
+      haml :upload
+    end
+    
+    post '/upload' do
+      unless params[:file] &&
+        @upload_status = "No file selected"
+        return haml :upload
+      end
+      
+      @log.info "Uploading #{params[:file][:filename]} to local forge installation"
+      @backends.each do |backend|
+        class_type = (backend.class.to_s.split('::'))[-1]
+        if class_type == 'Directory'
+          if backend.upload params[:file]
+            @upload_status = :success
+            return haml :upload 
+          end
+        end
+      end
+      
+      @upload_status = :failure
+      haml :upload
+    end
+    
+    
     private
     def get(relative_url)
       begin

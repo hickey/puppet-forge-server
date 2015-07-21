@@ -36,6 +36,8 @@ module PuppetForgeServer::App
     def initialize(backends)
       super(nil)
       @backends = backends
+      @log = PuppetForgeServer::Logger.get(:server)
+      @log.info 'Application UI initialized'
     end
 
     get '/v3/releases/:module' do

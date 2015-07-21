@@ -56,7 +56,7 @@ module PuppetForgeServer
 
     def build(backends, webui_root)
       Rack::Mount::RouteSet.new do |set|
-        set.add_route PuppetForgeServer::App::Frontend.new(webui_root)
+        set.add_route PuppetForgeServer::App::Frontend.new(webui_root, backends)
         set.add_route PuppetForgeServer::App::Generic.new
         set.add_route PuppetForgeServer::App::Version1.new(backends)
         set.add_route PuppetForgeServer::App::Version2.new(backends)
